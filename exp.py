@@ -67,6 +67,9 @@ class Canvas(app.Canvas):
         self._program.bind(gloo.VertexBuffer(data))
         self._program['s_texture'] = gloo.Texture2D(im1)
         self.transp=np.load('my_spks.npy')
+
+        self.pos=((np.load('pos.npy')[:10000])*2)-1
+        self.i=0
         # Create first explosion
         self._new_explosion()
 
@@ -107,8 +110,6 @@ class Canvas(app.Canvas):
         i+=1
         #self.i+=1
 
-        transp=np.load('my_spks.npy')
-        pos=np.load('pos.npy')[:10000]
         #self._program['u_centerPosition'] = centerpos
 
         # New color, scale alpha with N
@@ -125,7 +126,7 @@ class Canvas(app.Canvas):
         print(color)
 
 
-        data['a_position'] = pos
+        data['a_position'] = self.pos
 
         self._program.bind(gloo.VertexBuffer(data))
 
