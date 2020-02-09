@@ -21,19 +21,29 @@ N = 10000
 
 # Create vertex data container
 data = np.zeros(N, [('a_position', np.float32, 3),
-                    ('a_color', np.float32, 4)])
+                    ('a_color', np.float32, 4),
+                    ('a_lifetime',np.float32)])
 
 
 VERT_SHADER = """
+uniform float u_time;
 attribute vec3 a_position;
 attribute vec4 a_color;
+attribute float a_lifetime;
 varying float color_;
+varying float v_lifetime;
+
 void main () {
     gl_Position.xyz = a_position;
 
     color_=a_color.a;
 
-    gl_PointSize = 5.0;
+    //gl_PointSize = 5.0;
+
+    v_lifetime = 1.0 - (u_time / a_lifetime);
+    v_lifetime = clamp(v_lifetime, 0.0, 1.0);
+
+    gl_PointSize = (v_lifetime * v_lifetime) * 10.0;
 
 }
 """
@@ -96,10 +106,10 @@ class Canvas(app.Canvas):
         gloo.clear()
 
         # Draw
-        #self._program['u_time'] = time.time() - self._starttime
+        self._program['u_time'] = time.time() - self._starttime
 
         # New explosion?
-        if time.time() - self._starttime > 1:
+        if time.time() - self._starttime > 1.5:
             self._new_explosion()
 
         self._program.draw('points')
@@ -125,6 +135,7 @@ class Canvas(app.Canvas):
 
         print(color)
 
+        data['a_lifetime'] = np.random.normal(2.0, 0.5, (N,))
 
         data['a_position'] = self.pos
 
