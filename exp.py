@@ -21,23 +21,19 @@ N = 10000
 
 # Create vertex data container
 data = np.zeros(N, [('a_position', np.float32, 3),
-                    ('color', np.float32, 4)])
+                    ('a_color', np.float32, 4)])
 
 
 VERT_SHADER = """
-uniform float u_time;
-uniform vec3 u_centerPosition;
 attribute vec3 a_position;
-varying float v_lifetime;
-attribute vec4 color;
-in int gl_VertexID;
+attribute vec4 a_color;
 varying float color_;
 void main () {
     gl_Position.xyz = a_position;
 
-    color_=color.a;
+    color_=a_color.a;
 
-    gl_PointSize = 10.0;
+    gl_PointSize = 5.0;
 
 }
 """
@@ -48,17 +44,18 @@ FRAG_SHADER = """
 precision highp float;
 uniform sampler2D texture1;
 varying float color_;
-varying float v_lifetime;
 uniform highp sampler2D s_texture;
 void main()
 {
     highp vec4 texColor;
     texColor = texture2D(s_texture, gl_PointCoord);
-    gl_FragColor = vec4(color_) * texColor;
+    gl_FragColor = texColor;
     gl_FragColor.a = color_;
+
 }
 """
-
+global i
+i=0
 
 class Canvas(app.Canvas):
 
@@ -81,6 +78,9 @@ class Canvas(app.Canvas):
 
         self._timer = app.Timer('auto', connect=self.update, start=True)
 
+        self.i=0
+        global i
+        i=0
         self.show()
 
     def on_resize(self, event):
@@ -93,36 +93,46 @@ class Canvas(app.Canvas):
         gloo.clear()
 
         # Draw
-        self._program['u_time'] = time.time() - self._starttime
-        self._program.draw('points')
+        #self._program['u_time'] = time.time() - self._starttime
 
         # New explosion?
-        if time.time() - self._starttime > 0.1:
+        if time.time() - self._starttime > 1:
             self._new_explosion()
 
+        self._program.draw('points')
+
     def _new_explosion(self):
+        global i
+        print(i)
+        i+=1
+        #self.i+=1
 
         transp=np.load('my_spks.npy')
         pos=np.load('pos.npy')[:10000]
-
-        # New centerpos
-        centerpos = np.random.uniform(-0.5, 0.5, (3,))
         #self._program['u_centerPosition'] = centerpos
 
         # New color, scale alpha with N
-        a_transp=self.transp[np.random.randint(0,5000),:10000].reshape(10000,)
-        print(a_transp.shape)
+        a_transp=self.transp[i,:10000].reshape(10000,)
 
-        a_transp=self.transp[np.random.randint(0,5000),:10000].reshape(10000,)
-        color=np.zeros((N,4))
+        color=np.ones((N,4))
         color[:,3]=a_transp
         #self._program['color'] = color.astype('float32')
-        data['color'] = color
+
+        # bind the VBO to the GL context
+        #self._program.bind(self.data_vbo)
+        data['a_color'] = color
+
+        print(color)
+
 
         data['a_position'] = pos
 
+        self._program.bind(gloo.VertexBuffer(data))
+
         # Set time to zero
         self._starttime = time.time()
+
+
 
 
 if __name__ == '__main__':
