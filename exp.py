@@ -20,36 +20,24 @@ im1 *= np.array((X ** 2 + Y ** 2) <= radius * radius, dtype='float32')
 N = 10000
 
 # Create vertex data container
-data = np.zeros(N, [('a_lifetime', np.float32),
-                    ('a_startPosition', np.float32, 3),
-                    ('a_endPosition', np.float32, 3),
+data = np.zeros(N, [('a_position', np.float32, 3),
                     ('color', np.float32, 4)])
 
 
 VERT_SHADER = """
 uniform float u_time;
 uniform vec3 u_centerPosition;
-attribute float a_lifetime;
-attribute vec3 a_startPosition;
-attribute vec3 a_endPosition;
+attribute vec3 a_position;
 varying float v_lifetime;
 attribute vec4 color;
 in int gl_VertexID;
 varying float color_;
 void main () {
-    if (u_time <= a_lifetime)
-    {
-        gl_Position.xyz = a_startPosition + (u_time * a_endPosition);
-        gl_Position.xyz += u_centerPosition;
-        gl_Position.y -= 1.0 * u_time * u_time;
-        gl_Position.w = 1.0;
-    }
-    else
-        gl_Position = vec4(-1000, -1000, 0, 0);
-    v_lifetime = 1.0 - (u_time / a_lifetime);
-    v_lifetime = clamp(v_lifetime, 0.0, 1.0);
-    gl_PointSize = (v_lifetime * v_lifetime) * 40.0;
+    gl_Position.xyz = a_position;
+
     color_=color.a;
+
+    gl_PointSize = 10.0;
 
 }
 """
@@ -109,26 +97,29 @@ class Canvas(app.Canvas):
         self._program.draw('points')
 
         # New explosion?
-        if time.time() - self._starttime > 1.5:
+        if time.time() - self._starttime > 0.1:
             self._new_explosion()
 
     def _new_explosion(self):
 
         transp=np.load('my_spks.npy')
+        pos=np.load('pos.npy')[:10000]
 
         # New centerpos
         centerpos = np.random.uniform(-0.5, 0.5, (3,))
-        self._program['u_centerPosition'] = centerpos
+        #self._program['u_centerPosition'] = centerpos
 
         # New color, scale alpha with N
         a_transp=self.transp[np.random.randint(0,5000),:10000].reshape(10000,)
+        print(a_transp.shape)
 
+        a_transp=self.transp[np.random.randint(0,5000),:10000].reshape(10000,)
+        color=np.zeros((N,4))
+        color[:,3]=a_transp
         #self._program['color'] = color.astype('float32')
-        data['color'] = np.random.uniform(0.85, 1.00, (N, 4))
-        # Create new vertex data
-        data['a_lifetime'] = np.random.normal(2.0, 0.5, (N,))
-        data['a_startPosition'] = np.random.normal(0.0, 0.2, (N, 3))
-        data['a_endPosition'] = np.random.normal(0.0, 1.2, (N, 3))
+        data['color'] = color
+
+        data['a_position'] = pos
 
         # Set time to zero
         self._starttime = time.time()
