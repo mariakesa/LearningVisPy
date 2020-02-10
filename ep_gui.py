@@ -92,6 +92,9 @@ class Canvas(app.Canvas):
 
         self.pos=((np.load('pos.npy')[:10000])*2)-1
         self.i=0
+
+        self.ens_n=ens_n
+        self.ensemble=np.load('U.npy')[:10000,ens_n]
         # Create first explosion
         self._new_explosion()
 
@@ -106,7 +109,6 @@ class Canvas(app.Canvas):
         global i
         i=0
         #self.show()
-        self.ens_n=ens_n
 
     def on_resize(self, event):
         width, height = event.physical_size
@@ -138,7 +140,7 @@ class Canvas(app.Canvas):
         a_transp=self.transp[i,:10000].reshape(10000,)
 
         color=np.ones((N,4))
-        color[:,3]=a_transp
+        color[:,3]=a_transp*self.ensemble
 
         alpha = 1.0 / N ** 0.08
         color_un = np.random.uniform(0.1, 0.9, (3,))
@@ -166,7 +168,7 @@ from PyQt5.QtWidgets import *
 import vispy.app
 import sys
 
-ens_n=0
+ens_n=10
 canvas = Canvas(ens_n)
 vispy.use('PyQt5')
 w = QMainWindow()
