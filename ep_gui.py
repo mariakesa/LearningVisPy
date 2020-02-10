@@ -81,8 +81,8 @@ i=0
 
 class Canvas(app.Canvas):
 
-    def __init__(self):
-        app.Canvas.__init__(self, keys='interactive', size=(800, 600))
+    def __init__(self,ens_n):
+        app.Canvas.__init__(self,keys='interactive', size=(800, 600))
 
         # Create program
         self._program = gloo.Program(VERT_SHADER, FRAG_SHADER)
@@ -106,6 +106,7 @@ class Canvas(app.Canvas):
         global i
         i=0
         #self.show()
+        self.ens_n=ens_n
 
     def on_resize(self, event):
         width, height = event.physical_size
@@ -161,42 +162,12 @@ class Canvas(app.Canvas):
         self._starttime = time.time()
 
 
-
-'''
-if __name__ == '__main__':
-    c = Canvas()
-    app.run()
-
-
-app = QApplication(sys.argv)
-win = QMainWindow()
-vispy.use('PyQt5')
-vispyCanvas=Canvas()
-win.setCentralWidget(vispyCanvas.native)
-
-
-class Window(QtWidgets.QMainWindow):
-    def __init__(self):
-        super(Window, self).__init__()
-        self.ui = QMainWindow()
-        #self.ui.setupUi(self)
-
-        canvas = Canvas()
-        lay = QtWidgets.QVBoxLayout() # create layout
-        lay.addWidget(canvas.native)
-
-if __name__ == '__main__':
-    app = QtWidgets.QApplication([])
-    application = Window()
-    application.show()
-    vispy.app.run()
-
-'''
 from PyQt5.QtWidgets import *
 import vispy.app
 import sys
 
-canvas = Canvas()
+ens_n=0
+canvas = Canvas(ens_n)
 vispy.use('PyQt5')
 w = QMainWindow()
 widget = QWidget()
