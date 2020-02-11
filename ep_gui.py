@@ -168,7 +168,7 @@ from PyQt5.QtWidgets import *
 import vispy.app
 import sys
 
-ens_n=10
+ens_n=20
 canvas = Canvas(ens_n)
 vispy.use('PyQt5')
 w = QMainWindow()
