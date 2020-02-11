@@ -26,7 +26,7 @@ L = np.linspace(-radius, radius, 2 * radius + 1)
 im1 *= np.array((X ** 2 + Y ** 2) <= radius * radius, dtype='float32')
 
 # Set number of particles, you should be able to scale this to 100000
-N = 10000
+N = 18795
 
 # Create vertex data container
 data = np.zeros(N, [('a_position', np.float32, 3),
@@ -89,12 +89,14 @@ class Canvas(app.Canvas):
         self._program.bind(gloo.VertexBuffer(data))
         self._program['s_texture'] = gloo.Texture2D(im1)
         self.transp=np.load('my_spks.npy')
+        print('transp',self.transp.shape)
 
-        self.pos=((np.load('pos.npy')[:10000])*2)-1
+        self.pos=((np.load('pos.npy')[:])*2)-1
         self.i=0
 
         self.ens_n=ens_n
-        self.ensemble=np.load('U.npy')[:10000,ens_n]
+        self.ensemble=np.load('U.npy')[:,ens_n]
+        print('U shp',self.ensemble.shape)
         # Create first explosion
         self._new_explosion()
 
@@ -137,9 +139,11 @@ class Canvas(app.Canvas):
         #self._program['u_centerPosition'] = centerpos
 
         # New color, scale alpha with N
-        a_transp=self.transp[i,:10000].reshape(10000,)
+        a_transp=self.transp[i,:]
 
-        color=np.ones((N,4))
+        color=np.ones((18795,4))
+        print('ens',self.ensemble.shape)
+
         color[:,3]=a_transp*self.ensemble
 
         alpha = 1.0 / N ** 0.08
@@ -164,8 +168,7 @@ class Canvas(app.Canvas):
         self._starttime = time.time()
 
     def set_data(self,ens_n):
-        self.ensemble=np.load('U.npy')[:10000,ens_n]
-
+        self.ensemble=np.load('U.npy')[:,ens_n]
 
 
 from PyQt5.QtWidgets import *
@@ -180,7 +183,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         self.l0 = QGridLayout()
         self.l0.addWidget(canvas.native)
-        self.l0.addWidget(QPushButton())
         widget.setLayout(self.l0)
 
         self.n_ens=QLineEdit()
