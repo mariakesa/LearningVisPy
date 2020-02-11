@@ -163,6 +163,10 @@ class Canvas(app.Canvas):
         # Set time to zero
         self._starttime = time.time()
 
+    def set_data(self,ens_n):
+        self.ensemble=np.load('U.npy')[:10000,ens_n]
+
+
 
 from PyQt5.QtWidgets import *
 import vispy.app
@@ -171,15 +175,46 @@ import sys
 class MainWindow(QMainWindow):
     def __init__(self, canvas=None,parent=None):
         super(MainWindow, self).__init__(parent)
+        self.canvas=canvas
         widget = QWidget()
         self.setCentralWidget(widget)
-        widget.setLayout(QVBoxLayout())
-        widget.layout().addWidget(canvas.native)
-        widget.layout().addWidget(QPushButton())
+        self.l0 = QGridLayout()
+        self.l0.addWidget(canvas.native)
+        self.l0.addWidget(QPushButton())
+        widget.setLayout(self.l0)
+
+        self.n_ens=QLineEdit()
+        self.n_ens.setText("25")
+        self.n_ens.setFixedWidth(35)
+        self.l0.addWidget(self.n_ens, 0, 4.5, 1, 2)
+        self.n_ens.returnPressed.connect(lambda: self.on_set_n_ens())
+        self.n_components=int(self.n_ens.text())
+
+        #vispy.app.KeyEvent('returnPressed')
+        #self.canvas.connect(self.on_set_n_ens())
+        #self.n_ens.valueChanged.connect(self.on_set_n_ens)
+
+        self.update_view()
+
+
+    def on_set_n_ens(self):
+        self.n_components=int(self.n_ens.text())
+        print('n_components',self.n_components)
+        #self.show()
+        self.update_view()
+
+    def update_view(self):
+        global i
+        print(i)
+        i=0
+        self._starttime = time.time()
+        self.canvas.set_data(self.n_components)
 
 ens_n=0
 canvas = Canvas(ens_n)
+#canvas.is_interactive(True)
 vispy.use('PyQt5')
 w = MainWindow(canvas)
 w.show()
 vispy.app.run()
+vispy.app.processEvents()
