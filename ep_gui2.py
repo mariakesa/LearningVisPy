@@ -168,7 +168,10 @@ class Canvas(app.Canvas):
         self._starttime = time.time()
 
     def set_data(self,ens_n):
-        self.ensemble=np.load('U.npy')[:,ens_n]
+        if ens_n!=-1:
+            self.ensemble=np.load('U.npy')[:,ens_n]
+        else:
+            self.ensemble=np.ones(18795,)
 
 
 from PyQt5.QtWidgets import *
